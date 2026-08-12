@@ -1,0 +1,23 @@
+# Virtual environment
+venv/
+
+# Environment variables
+.env
+
+# Python cache
+__pycache__/
+*.py[cod]
+
+# Streamlit
+.streamlit/
+
+# Uploaded data
+data/raw/*
+data/processed/*
+
+# VS Code
+.vscode/
+
+# OS files
+.DS_Store
+Thumbs.db
