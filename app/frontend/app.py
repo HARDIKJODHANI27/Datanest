@@ -86,10 +86,10 @@ def show_upload():
 
             col1, col2, col3, col4 = st.columns(4)
 
-            col1.metric("Rows", profile["row count"])
-            col2.metric("Columns", profile["column count"])
-            col3.metric("Missing Values", profile["missing values"])
-            col4.metric("Duplicate Rows", profile["duplicate count"])
+            col1.metric("Rows", profile["row_count"])
+            col2.metric("Columns", profile["column_count"])
+            col3.metric("Missing Values", profile["missing_values"])
+            col4.metric("Duplicate Rows", profile["duplicate_rows"])
 
             st.subheader("Column Profile")
             column_profiles = profile_columns(df)

@@ -21,3 +21,11 @@ data/processed/*
 # OS files
 .DS_Store
 Thumbs.db
+
+# Logs
+*.log
+
+# Database files
+*.db
+*.sqlite
+*.sqlite3
