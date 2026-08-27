@@ -2,6 +2,7 @@ import streamlit as st
 from app.utils.file_loader import load_file
 
 from app.analytics.profiler import profile_dataframe, profile_columns
+from app.analytics.data_quality import check_data_quality
 
 
 
@@ -72,6 +73,7 @@ def show_upload():
 
         try:
             df = load_file(uploaded_file)
+            st.session_state["df"] = df
 
             st.subheader("Data Preview")
 
@@ -106,10 +108,39 @@ def show_upload():
 
 
 
+
+#------------- SHOW REPORTS ---------------
 def show_reports():
     st.header("Show Reports")
+
+
+#------------- SHOW ANALYSIS ---------------
 def show_analysis():
     st.header("Show Analysis")
+
+    if "df" not in st.session_state:
+        st.info("Please Upload a dataset first!")
+        return
+
+    df = st.session_state["df"]
+    quality = check_data_quality(df)
+
+    st.subheader("Data Quality")
+    col1, col2 = st.columns(2)
+
+    col1.metric("Missing Values", quality["missing_values"])
+    col2.metric("Duplicate Rows", quality["duplicate_rows"])
+
+    if quality["empty_columns"]:
+        st.warning(
+            f"Completely empty columns: {', '.join(quality["empty_columns"])}"
+        )
+
+    else:
+        st.success("No completely empty columns")
+    
+
+#------------- SHOW DATASET ---------------
 def show_datasets():
     st.header("Show Datasets")
 
