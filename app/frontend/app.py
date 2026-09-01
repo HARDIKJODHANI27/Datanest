@@ -1,8 +1,13 @@
+# PYTHON LIBRARIES IMPORTS
 import streamlit as st
 from app.utils.file_loader import load_file
+import pandas as pd
 
+# ANALYTICS IMPORTS
 from app.analytics.profiler import profile_dataframe, profile_columns
 from app.analytics.data_quality import check_data_quality
+from app.analytics.numerical_statistics import numeric_statistics
+from app.analytics.categorical_statistics import categorical_statistics
 
 
 
@@ -118,6 +123,10 @@ def show_reports():
 def show_analysis():
     st.header("Show Analysis")
 
+    num_stats = numeric_statistics(df)
+    cat_stats = categorical_statistics(df)
+
+
     if "df" not in st.session_state:
         st.info("Please Upload a dataset first!")
         return
@@ -138,30 +147,54 @@ def show_analysis():
 
     else:
         st.success("No completely empty columns")
-    
+
+
+    if quality["missing_columns"]:
+        st.warning("Missing values by columns:")
+
+        missing_df = pd.DataFrame(
+            list(quality["missing_columns"].items()),
+            columns=["Column", "Missing Values"]
+        )
+
+        st.dataframe(
+            missing_df,
+            use_container_width=True,
+            hide_index=True
+        )
+    else:
+        st.success("No missing values found!")
+
+    st.subheader("Numeric Statistics")
+
+    if num_stats:
+        num_stats.df = pd.DataFrame(num_stats)
+
+        st.dataframe(
+            num_stats.df,
+            use_container_width=True,
+            hide_index=True
+        )
+    else:
+        st.info("No numeric data found in the dataset!")    
+
+    st.subheader("Categorical Statistics")
+
+    if cat_stats:
+        categorical_df = pd.DataFrame(cat_stats)
+
+        st.dataframe(
+            categorical_df,
+            use_container_width=True,
+            hide_index=True
+        )
+    else:
+        st.info("No categorical columns found in the dataset.")
+
 
 #------------- SHOW DATASET ---------------
 def show_datasets():
     st.header("Show Datasets")
-
-
-
-# ---------- SIDEBAR ----------
-
-st.sidebar.title("Datanest")
-
-page = st.sidebar.radio(
-    "Navigation",
-    [
-        "Home",
-        "Upload Data",
-        "Datasets",
-        "Analysis",
-        "Reports"
-    ]
-)
-
-
 # ---------- PAGE NAVIGATION ----------
 
 def run_app():

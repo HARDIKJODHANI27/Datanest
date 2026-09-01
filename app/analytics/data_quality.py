@@ -12,6 +12,13 @@ def check_data_quality(df):
         for column in df.columns
         if df[column].isna().all()
     ]
+
+    quality["missing_columns"] = {
+        column: int(df[column].isna().sum())
+        for column in df.columns
+        if df[column].isna().sum() > 0
+    }
+
     quality["constant_columns"] = [
         column
         for column in df.columns
