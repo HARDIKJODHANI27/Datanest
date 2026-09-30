@@ -1,14 +1,20 @@
 # PYTHON LIBRARIES IMPORTS
+
 import streamlit as st
 from app.utils.file_loader import load_file
 import pandas as pd
 
+
 # ANALYTICS IMPORTS
+
 from app.analytics.profiler import profile_dataframe, profile_columns
 from app.analytics.data_quality import check_data_quality
 from app.analytics.numerical_statistics import numeric_statistics
 from app.analytics.categorical_statistics import categorical_statistics
-
+from app.analytics.visualization import (
+    create_numeric_histogram,
+    create_categorical_bar_chart
+)
 
 
 # ---------- HOME PAGE ----------
@@ -57,6 +63,8 @@ def show_home():
         use_container_width=True,
         hide_index=True
     )
+
+
 # ---------- UPLOAD PAGE ----------
 
 def show_upload():
@@ -89,6 +97,7 @@ def show_upload():
             )
 
             st.subheader("Data Profile")
+
             profile = profile_dataframe(df)
 
             col1, col2, col3, col4 = st.columns(4)
@@ -99,11 +108,14 @@ def show_upload():
             col4.metric("Duplicate Rows", profile["duplicate_rows"])
 
             st.subheader("Column Profile")
+
             column_profiles = profile_columns(df)
 
-            st.dataframe(column_profiles, use_container_width=True, hide_index=True)
-
-
+            st.dataframe(
+                column_profiles,
+                use_container_width=True,
+                hide_index=True
+            )
 
         except Exception as e:
             st.error(
@@ -111,50 +123,62 @@ def show_upload():
             )
 
 
+# ---------- SHOW REPORTS ----------
 
-
-
-#------------- SHOW REPORTS ---------------
 def show_reports():
     st.header("Show Reports")
 
 
-#------------- SHOW ANALYSIS ---------------
+# ---------- SHOW ANALYSIS ----------
+
 def show_analysis():
     st.header("Show Analysis")
-
-    num_stats = numeric_statistics(df)
-    cat_stats = categorical_statistics(df)
-
 
     if "df" not in st.session_state:
         st.info("Please Upload a dataset first!")
         return
 
     df = st.session_state["df"]
+
     quality = check_data_quality(df)
+    num_stats = numeric_statistics(df)
+    cat_stats = categorical_statistics(df)
 
     st.subheader("Data Quality")
+
     col1, col2 = st.columns(2)
 
-    col1.metric("Missing Values", quality["missing_values"])
-    col2.metric("Duplicate Rows", quality["duplicate_rows"])
+    col1.metric(
+        "Missing Values",
+        quality["missing_values"]
+    )
+
+    col2.metric(
+        "Duplicate Rows",
+        quality["duplicate_rows"]
+    )
 
     if quality["empty_columns"]:
         st.warning(
-            f"Completely empty columns: {', '.join(quality["empty_columns"])}"
+            f"Completely empty columns: "
+            f"{', '.join(quality['empty_columns'])}"
+        )
+    else:
+        st.success(
+            "No completely empty columns"
         )
 
-    else:
-        st.success("No completely empty columns")
-
-
     if quality["missing_columns"]:
-        st.warning("Missing values by columns:")
+        st.warning(
+            "Missing values by columns:"
+        )
 
         missing_df = pd.DataFrame(
             list(quality["missing_columns"].items()),
-            columns=["Column", "Missing Values"]
+            columns=[
+                "Column",
+                "Missing Values"
+            ]
         )
 
         st.dataframe(
@@ -163,20 +187,51 @@ def show_analysis():
             hide_index=True
         )
     else:
-        st.success("No missing values found!")
+        st.success(
+            "No missing values found!"
+        )
 
     st.subheader("Numeric Statistics")
 
     if num_stats:
-        num_stats.df = pd.DataFrame(num_stats)
+        numerical_df = pd.DataFrame(num_stats)
 
         st.dataframe(
-            num_stats.df,
+            numerical_df,
             use_container_width=True,
             hide_index=True
         )
     else:
-        st.info("No numeric data found in the dataset!")    
+        st.info(
+            "No numeric data found in the dataset!"
+        )
+
+    st.subheader("Numerical Visualization")
+
+    if num_stats:
+        numerical_columns = [
+            statistic["column"]
+            for statistic in num_stats
+        ]
+
+        selected_column = st.selectbox(
+            "Select a numerical column",
+            numerical_columns
+        )
+
+        figure = create_numeric_histogram(
+            df,
+            selected_column
+        )
+
+        st.plotly_chart(
+            figure,
+            use_container_width=True
+        )
+    else:
+        st.info(
+            "No numerical columns available for visualization."
+        )
 
     st.subheader("Categorical Statistics")
 
@@ -189,12 +244,44 @@ def show_analysis():
             hide_index=True
         )
     else:
-        st.info("No categorical columns found in the dataset.")
+        st.info(
+            "No categorical columns found in the dataset."
+        )
+
+    st.subheader("Categorical Visualization")
+
+    if cat_stats:
+        categorical_columns = [
+            statistic["column"]
+            for statistic in cat_stats
+        ]
+
+        selected_column = st.selectbox(
+            "Select a categorical column",
+            categorical_columns
+        )
+
+        figure = create_categorical_bar_chart(
+            df,
+            selected_column
+        )
+
+        st.plotly_chart(
+            figure,
+            use_container_width=True
+        )
+    else:
+        st.info(
+            "No categorical columns available for visualization."
+        )
 
 
-#------------- SHOW DATASET ---------------
+# ---------- SHOW DATASETS ----------
+
 def show_datasets():
     st.header("Show Datasets")
+
+
 # ---------- PAGE NAVIGATION ----------
 
 def run_app():
@@ -214,7 +301,8 @@ def run_app():
 
     st.write(
         "An intelligent business analytics platform "
-        "for importing, analyzing, visualizing, and understanding data."
+        "for importing, analyzing, visualizing, and "
+        "understanding data."
     )
 
     st.sidebar.title("Datanest")
